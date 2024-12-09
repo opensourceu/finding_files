@@ -26,6 +26,8 @@
 # SOFTWARE.
 ################################################################################
 
+set -o noglob
+
 function usage {
   echo "Usage: find_include_exclude.sh [-b behavior] [-i include_glob_pattern] [-x exclude_glob_pattern] [-X exclude_dir_glob_pattern] [-h] [path]"
   echo "Find files with names that match include patterns and don't match exclude patterns"
@@ -46,9 +48,8 @@ function usage {
 # pipe find output to awk that filters paths based on grep behavior
 function behaveGrep {
 
-
 # parentheses around comma expression prevent evaluation after excluded directory match
-  find "$root" ${excludeDirClauses[*]} \( -printf "%p: " ${matchClauses[*]} , -printf "\n"  \) |
+  find "$root" ${excludeDirClauses[*]} \( -printf "%p:" ${matchClauses[*]} , -printf "\n"  \) |
   awk -v restrictToIncludes=$restrictToIncludes '
     {
       path = substr($1, 1, length($1) - 1)
@@ -78,7 +79,7 @@ function behaveGrep {
 # pipe find output to awk that filters paths based on rsync behavior
 function behaveRsync {
 
-  find "$root" ${excludeDirClauses[*]} \( -printf "%p:%d" , -type d -printf ":d " -o -printf ":f " ${matchClauses[*]} , -printf "\n"  \) |
+  find "$root" ${excludeDirClauses[*]} \( -printf "%p:%d" , -type d -printf ":d" -o -printf ":f" ${matchClauses[*]} , -printf "\n"  \) |
   awk '
     BEGIN {
       excludeDeeperThan = -1
@@ -183,7 +184,7 @@ declare -a matchClauses
 for ((i = 0; i < ${#filterPatterns[*]}; ++i)); do
   code=${filterPatternCodes[i]}
   pat=${filterPatterns[i]}
-  matchClauses+=(" , " -name "$pat" -printf "\040+$code" -o -printf "\040-$code")
+  matchClauses+=(" , " -name $pat -printf "\040+$code" -o -printf "\040-$code")
 done
 
 if [[ $behavior == rsync ]]; then
