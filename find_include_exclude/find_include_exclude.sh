@@ -46,8 +46,9 @@ function usage {
 # pipe find output to awk that filters paths based on grep behavior
 function behaveGrep {
 
+
 # parentheses around comma expression prevent evaluation after excluded directory match
-  eval find "$root" ${excludeDirClauses[*]} '\(' -printf "\"%p: \"" "${matchClauses[*]}" , -printf "\"\\n\""  '\)' |
+  find "$root" ${excludeDirClauses[*]} \( -printf "%p: " ${matchClauses[*]} , -printf "\n"  \) |
   awk -v restrictToIncludes=$restrictToIncludes '
     {
       path = substr($1, 1, length($1) - 1)
@@ -77,7 +78,7 @@ function behaveGrep {
 # pipe find output to awk that filters paths based on rsync behavior
 function behaveRsync {
 
-  eval find "$root" ${excludeDirClauses[*]} '\(' -printf "\"%p:%d\"" , -type d -printf "\":d \"" -o -printf "\":f \"" "${matchClauses[*]}" , -printf "\"\\n\""  '\)' |
+  find "$root" ${excludeDirClauses[*]} \( -printf "%p:%d" , -type d -printf ":d " -o -printf ":f " ${matchClauses[*]} , -printf "\n"  \) |
   awk '
     BEGIN {
       excludeDeeperThan = -1
@@ -140,17 +141,17 @@ while getopts "b:hi:tx:X:" opt; do
       behavior=$OPTARG
       ;;
     i)
-      filterPatterns+=("$OPTARG")
+      filterPatterns+=($OPTARG)
       filterPatternCodes+=(i)
-      includeNamePatterns+=("$OPTARG")
+      includeNamePatterns+=($OPTARG)
       ;;
     x)
-      filterPatterns+=("$OPTARG")
+      filterPatterns+=($OPTARG)
       filterPatternCodes+=(x)
-      excludeNamePatterns+=("$OPTARG")
+      excludeNamePatterns+=($OPTARG)
       ;;
     X)
-      excludeDirPatterns+=("$OPTARG")
+      excludeDirPatterns+=($OPTARG)
       ;;
     h) usage; exit 0
       ;;
@@ -182,7 +183,7 @@ declare -a matchClauses
 for ((i = 0; i < ${#filterPatterns[*]}; ++i)); do
   code=${filterPatternCodes[i]}
   pat=${filterPatterns[i]}
-  matchClauses+=(" , " -name "\"$pat\"" -printf "\" +$code\"" -o -printf "\" -$code\"")
+  matchClauses+=(" , " -name "$pat" -printf "\040+$code" -o -printf "\040-$code")
 done
 
 if [[ $behavior == rsync ]]; then
@@ -199,7 +200,7 @@ declare -a excludeDirClauses
 
 for ((i = 0; i < ${#excludeDirPatterns[*]}; ++i)); do
   pat=${excludeDirPatterns[i]}
-  excludeDirClauses+=(-type d -name "\"$pat\"" -prune -o)
+  excludeDirClauses+=(-type d -name "$pat" -prune -o)
 done
 
 behaveGrep
