@@ -103,9 +103,9 @@ function doPrintTestDir {
 # colorize test filenames read on stdin
 function doColorizeInput {
   sed -E "
-    /(dir|file)_[0-9]+\.include\.exclude[^/]*/ { s//\x1b[m\x1b[1;33m&\x1b[m/g; n }
-    /(dir|file)_[0-9]+\.include[^/]*/s//\x1b[m\x1b[1;32m&\x1b[m/g
-    /(dir|file)_[0-9]+\.exclude[^/]*/s//\x1b[m\x1b[1;31m&\x1b[m/g
+    /(dir|file)_[0-9]+\.include\.exclude[a-z0-9_.]*/ { s//\x1b[m\x1b[1;33m&\x1b[m/g; n }
+    /(dir|file)_[0-9]+\.include[a-z0-9_.]*/s//\x1b[m\x1b[1;32m&\x1b[m/g
+    /(dir|file)_[0-9]+\.exclude[a-z0-9_.]*/s//\x1b[m\x1b[1;31m&\x1b[m/g
   "
 }
 
